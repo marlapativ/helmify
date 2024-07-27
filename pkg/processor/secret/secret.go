@@ -2,10 +2,11 @@ package secret
 
 import (
 	"fmt"
-	"github.com/arttor/helmify/pkg/format"
 	"io"
 	"strings"
 	"text/template"
+
+	"github.com/arttor/helmify/pkg/format"
 
 	"github.com/arttor/helmify/pkg/processor"
 
@@ -72,12 +73,27 @@ func (d secret) Process(appMeta helmify.AppMetadata, obj *unstructured.Unstructu
 	values := helmify.Values{}
 	var data, stringData string
 	templatedData := map[string]string{}
-	for key := range sec.Data {
+	for key, val := range sec.Data {
+		isEncoded := true
 		keyCamelCase := strcase.ToLowerCamel(key)
 		if key == strings.ToUpper(key) {
 			keyCamelCase = strcase.ToLowerCamel(strings.ToLower(key))
 		}
-		templatedName, err := values.AddSecret(true, nameCamelCase, keyCamelCase)
+
+		// CUSTOM PATCH
+		// if value is not empty, we are using the value instead of key
+		if len(val) > 0 {
+			isEncoded = false
+			stringVal := string(val)
+			stringVal = strcase.ToLowerCamel(stringVal)
+			if stringVal == strings.ToUpper(stringVal) {
+				keyCamelCase = strcase.ToLowerCamel(strings.ToLower(key))
+			} else {
+				keyCamelCase = stringVal
+			}
+		}
+
+		templatedName, err := values.AddSecret(isEncoded, nameCamelCase, keyCamelCase)
 		if err != nil {
 			return true, nil, fmt.Errorf("%w: unable add secret to values", err)
 		}

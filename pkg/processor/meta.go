@@ -82,8 +82,17 @@ func ProcessObjMeta(appMeta helmify.AppMetadata, obj *unstructured.Unstructured,
 		}
 	}
 
-	if (obj.GetNamespace() != "") && (appMeta.Config().PreserveNs){
-		namespace, err = yamlformat.Marshal(map[string]interface{}{"namespace": obj.GetNamespace()}, 2)
+	if obj.GetNamespace() != "" {
+		// CUSTOM PATCH
+		// Defaulting to the default release namespace
+		overrideNS := "{{ .Release.Namespace }}"
+
+		// If PreserveNs is set, we should use the original namespace
+		if appMeta.Config().PreserveNs {
+			overrideNS = obj.GetNamespace()
+		}
+
+		namespace, err = yamlformat.Marshal(map[string]interface{}{"namespace": overrideNS}, 2)
 		if err != nil {
 			return "", err
 		}

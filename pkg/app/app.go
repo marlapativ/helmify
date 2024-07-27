@@ -11,6 +11,7 @@ import (
 	"github.com/arttor/helmify/pkg/processor/job"
 	"github.com/arttor/helmify/pkg/processor/poddisruptionbudget"
 	"github.com/arttor/helmify/pkg/processor/statefulset"
+	"gopkg.in/yaml.v2"
 
 	"github.com/sirupsen/logrus"
 
@@ -35,6 +36,11 @@ func Start(stdin io.Reader, config config.Config) error {
 	if err != nil {
 		return err
 	}
+
+	// CUSTOM PATCH
+	// Disable line wrapping(120 characters) for YAML output
+	yaml.FutureLineWrap()
+
 	setLogLevel(config)
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	defer cancelFunc()

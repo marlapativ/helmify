@@ -97,6 +97,10 @@ func overwriteTemplateFile(filename, chartDir string, crd bool, templates []helm
 			}
 		}
 	}
+
+	// CUSTOM PATCH
+	// Add newline at the end of the file
+	f.Write([]byte("\n"))
 	logrus.WithField("file", file).Info("overwritten")
 	return nil
 }
